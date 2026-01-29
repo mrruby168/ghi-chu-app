@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#007bff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Ghi Chú">
+    <title>Ghi Chú</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23007bff' width='100' height='100' rx='20'/><text y='.9em' x='50%' text-anchor='middle' font-size='70'>📝</text></svg>">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        html, body { 
+            height: 100%; 
+            overflow: hidden;
+            overscroll-behavior: none;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+        }
+        
+        .app {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            max-width: 500px;
+            margin: 0 auto;
+            background: #f5f5f5;
+        }
+        
+        /* Header */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding-top: max(12px, env(safe-area-inset-top));
+        }
+        
+        header h1 { 
+            font-size: 1.3rem; 
+            color: #333; 
+            font-weight: 700;
+        }
+        
+        .header-actions { display: flex; gap: 4px; }
+        
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: transparent;
+            font-size: 1.3rem;
+            cursor: pointer;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .icon-btn:active { background: #f0f0f0; }
+        
+        /* Search */
+        .search-box { padding: 12px 16px; background: #fff; }
+        
+        .search-input {
+            width: 100%;
+            height: 44px;
+            padding: 0 16px;
+            border: none;
+            border-radius: 12px;
+            background: #f0f0f0;
+            font-size: 1rem;
+            color: #333;
+        }
+        
+        .search-input::placeholder { color: #999; }
+        .search-input:focus { outline: 2px solid #007bff; }
+        
+        /* Notes List */
+        .notes-container {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .notes-list { padding: 12px 16px 100px; }
+        
+        .note-card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border-left: 4px solid #007bff;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+        
+        .note-card:active { transform: scale(0.98); }
+        
+        .note-card[data-color="blue"] { border-left-color: #007bff; }
+        .note-card[data-color="green"] { border-left-color: #28a745; }
+        .note-card[data-color="orange"] { border-left-color: #fd7e14; }
+        .note-card[data-color="red"] { border-left-color: #dc3545; }
+        .note-card[data-color="purple"] { border-left-color: #6f42c1; }
+        
+        .note-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .note-content {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .note-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 0.75rem;
+            color: #999;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        
+        .empty-state .icon { font-size: 4rem; margin-bottom: 16px; }
+        .empty-state p { font-size: 1rem; }
+        
+        /* FAB */
+        .fab {
+            position: fixed;
+            bottom: max(24px, env(safe-area-inset-bottom));
+            right: 24px;
+            width: 60px;
+            height: 60px;
+            border: none;
+            border-radius: 18px;
+            background: #007bff;
+            color: #fff;
+            font-size: 1.8rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0,123,255,0.4);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .fab:active { transform: scale(0.9); }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(0,0,0,0.5);
+        }
+        
+        .modal.open { display: flex; align-items: flex-end; }
+        
+        .modal-content {
+            width: 100%;
+            max-height: 90vh;
+            background: #fff;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.25s ease;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal-header h2 { font-size: 1.1rem; color: #333; }
+        
+        .modal-body { 
+            padding: 20px; 
+            flex: 1; 
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .form-group { margin-bottom: 16px; }
+        
+        .form-label {
+            display: block;
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1rem;
+            color: #333;
+            background: #fff;
+        }
+        
+        .form-input:focus { outline: none; border-color: #007bff; }
+        
+        textarea.form-input { 
+            min-height: 150px; 
+            resize: none; 
+            line-height: 1.6;
+            font-family: inherit;
+        }
+        
+        .color-picker { display: flex; gap: 12px; flex-wrap: wrap; }
+        
+        .color-opt {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            cursor: pointer;
+        }
+        
+        .color-opt.active { border-color: #333; transform: scale(1.1); }
+        .color-opt[data-color="blue"] { background: #007bff; }
+        .color-opt[data-color="green"] { background: #28a745; }
+        .color-opt[data-color="orange"] { background: #fd7e14; }
+        .color-opt[data-color="red"] { background: #dc3545; }
+        .color-opt[data-color="purple"] { background: #6f42c1; }
+        
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            padding: 16px 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .btn:active { opacity: 0.8; }
+        .btn-cancel { background: #f0f0f0; color: #333; }
+        .btn-save { background: #007bff; color: #fff; }
+        .btn-delete { background: #dc3545; color: #fff; flex: 0.5; }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #333;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            z-index: 300;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        
+        /* Menu */
+        .menu-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 150;
+        }
+        
+        .menu-overlay.open { display: block; }
+        
+        .menu-panel {
+            position: fixed;
+            top: 0;
+            right: -280px;
+            width: 280px;
+            height: 100%;
+            background: #fff;
+            z-index: 151;
+            transition: right 0.3s;
+            padding: 20px;
+            padding-top: max(20px, env(safe-area-inset-top));
+        }
+        
+        .menu-panel.open { right: 0; }
+        
+        .menu-title { font-size: 1.2rem; margin-bottom: 20px; color: #333; }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            border-radius: 10px;
+            color: #333;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        
+        .menu-item:active { background: #f5f5f5; }
+        .menu-item.danger { color: #dc3545; }
+        
+        .menu-divider { height: 1px; background: #eee; margin: 10px 0; }
+        
+        .stats { padding: 14px; background: #f5f5f5; border-radius: 10px; margin-top: 20px; }
+        .stats-title { font-size: 0.85rem; color: #666; margin-bottom: 8px; }
+        .stats-value { font-size: 1.5rem; font-weight: 700; color: #007bff; }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header>
+            <h1>📝 Ghi Chú</h1>
+            <div class="header-actions">
+                <button class="icon-btn" id="searchBtn">🔍</button>
+                <button class="icon-btn" id="menuBtn">☰</button>
+            </div>
+        </header>
+
+        <div class="search-box" id="searchBox">
+            <input type="text" class="search-input" id="searchInput" placeholder="Tìm kiếm ghi chú...">
+        </div>
+
+        <div class="notes-container">
+            <div class="notes-list" id="notesList"></div>
+        </div>
+
+        <button class="fab" id="addBtn">+</button>
+    </div>
+
+    <!-- Note Modal -->
+    <div class="modal" id="noteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Ghi chú mới</h2>
+                <button class="icon-btn" id="closeModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Tiêu đề</label>
+                    <input type="text" class="form-input" id="noteTitle" placeholder="Nhập tiêu đề...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nội dung</label>
+                    <textarea class="form-input" id="noteContent" placeholder="Nhập nội dung..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Màu sắc</label>
+                    <div class="color-picker" id="colorPicker">
+                        <div class="color-opt active" data-color="blue"></div>
+                        <div class="color-opt" data-color="green"></div>
+                        <div class="color-opt" data-color="orange"></div>
+                        <div class="color-opt" data-color="red"></div>
+                        <div class="color-opt" data-color="purple"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-delete" id="deleteBtn" style="display:none">Xóa</button>
+                <button class="btn btn-cancel" id="cancelBtn">Hủy</button>
+                <button class="btn btn-save" id="saveBtn">Lưu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menu -->
+    <div class="menu-overlay" id="menuOverlay"></div>
+    <div class="menu-panel" id="menuPanel">
+        <div class="menu-title">⚙️ Menu</div>
+        <div class="menu-item" id="exportBtn">📤 Xuất dữ liệu</div>
+        <div class="menu-item" id="importBtn">📥 Nhập dữ liệu</div>
+        <div class="menu-divider"></div>
+        <div class="menu-item danger" id="clearBtn">🗑️ Xóa tất cả</div>
+        <div class="stats">
+            <div class="stats-title">Tổng số ghi chú</div>
+            <div class="stats-value" id="statsCount">0</div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <input type="file" id="importFile" accept=".json" style="display:none">
+
+    <script>
+        // Storage
+        const STORAGE = 'pwa_notes_v1';
+        let notes = JSON.parse(localStorage.getItem(STORAGE) || '[]');
+        let editingId = null;
+        let selectedColor = 'blue';
+
+        // Elements
+        const $ = id => document.getElementById(id);
+        const notesList = $('notesList');
+        const noteModal = $('noteModal');
+        const menuOverlay = $('menuOverlay');
+        const menuPanel = $('menuPanel');
+        const searchInput = $('searchInput');
+        const toast = $('toast');
+
+        // Init
+        if (notes.length === 0) {
+            notes = [
+                { id: 1, title: 'Chào mừng! 👋', content: 'Đây là app Ghi Chú PWA. Bạn có thể:\n• Thêm ghi chú mới\n• Tìm kiếm nhanh\n• Chọn màu sắc\n• Xuất/nhập dữ liệu', color: 'blue', date: Date.now() },
+                { id: 2, title: 'Cài app lên điện thoại', content: 'Android: Nhấn ⋮ → Thêm vào màn hình chính\niPhone: Nhấn 📤 → Thêm vào MH chính', color: 'green', date: Date.now() - 60000 }
+            ];
+            save();
+        }
+        render();
+
+        // Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
+        }
+
+        // Events
+        $('addBtn').onclick = () => openModal();
+        $('closeModal').onclick = closeModal;
+        $('cancelBtn').onclick = closeModal;
+        $('saveBtn').onclick = saveNote;
+        $('deleteBtn').onclick = deleteNote;
+        $('menuBtn').onclick = openMenu;
+        $('menuOverlay').onclick = closeMenu;
+        $('searchBtn').onclick = () => searchInput.focus();
+        $('exportBtn').onclick = exportData;
+        $('importBtn').onclick = () => $('importFile').click();
+        $('clearBtn').onclick = clearAll;
+        searchInput.oninput = e => render(e.target.value);
+        
+        noteModal.onclick = e => { if (e.target === noteModal) closeModal(); };
+
+        notesList.onclick = e => {
+            const card = e.target.closest('.note-card');
+            if (card) openModal(parseInt(card.dataset.id));
+        };
+
+        $('colorPicker').onclick = e => {
+            const opt = e.target.closest('.color-opt');
+            if (opt) {
+                document.querySelectorAll('.color-opt').forEach(o => o.classList.remove('active'));
+                opt.classList.add('active');
+                selectedColor = opt.dataset.color;
+            }
+        };
+
+        $('importFile').onchange = e => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (Array.isArray(data)) {
+                        notes = [...notes, ...data.map(n => ({...n, id: Date.now() + Math.random()}))];
+                        save();
+                        render();
+                        showToast('✅ Đã nhập ' + data.length + ' ghi chú');
+                    }
+                } catch { showToast('❌ File không hợp lệ'); }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+            closeMenu();
+        };
+
+        // Functions
+        function render(filter = '') {
+            const filtered = notes.filter(n => 
+                n.title.toLowerCase().includes(filter.toLowerCase()) ||
+                n.content.toLowerCase().includes(filter.toLowerCase())
+            ).sort((a, b) => b.date - a.date);
+
+            $('statsCount').textContent = notes.length;
+
+            if (filtered.length === 0) {
+                notesList.innerHTML = `<div class="empty-state"><div class="icon">📝</div><p>${filter ? 'Không tìm thấy' : 'Chưa có ghi chú'}</p></div>`;
+                return;
+            }
+
+            notesList.innerHTML = filtered.map(n => `
+                <div class="note-card" data-id="${n.id}" data-color="${n.color}">
+                    <div class="note-title">${esc(n.title)}</div>
+                    <div class="note-content">${esc(n.content)}</div>
+                    <div class="note-meta"><span>${timeAgo(n.date)}</span></div>
+                </div>
+            `).join('');
+        }
+
+        function openModal(id = null) {
+            editingId = id;
+            const note = id ? notes.find(n => n.id === id) : null;
+
+            $('modalTitle').textContent = note ? 'Chỉnh sửa' : 'Ghi chú mới';
+            $('noteTitle').value = note?.title || '';
+            $('noteContent').value = note?.content || '';
+            selectedColor = note?.color || 'blue';
+            $('deleteBtn').style.display = note ? 'block' : 'none';
+
+            document.querySelectorAll('.color-opt').forEach(o => {
+                o.classList.toggle('active', o.dataset.color === selectedColor);
+            });
+
+            noteModal.classList.add('open');
+            setTimeout(() => $('noteTitle').focus(), 100);
+        }
+
+        function closeModal() {
+            noteModal.classList.remove('open');
+            editingId = null;
+        }
+
+        function saveNote() {
+            const title = $('noteTitle').value.trim() || 'Không tiêu đề';
+            const content = $('noteContent').value.trim();
+
+            if (!content && !title) return;
+
+            if (editingId) {
+                const note = notes.find(n => n.id === editingId);
+                if (note) {
+                    note.title = title;
+                    note.content = content;
+                    note.color = selectedColor;
+                    note.date = Date.now();
+                }
+                showToast('✅ Đã cập nhật');
+            } else {
+                notes.unshift({ id: Date.now(), title, content, color: selectedColor, date: Date.now() });
+                showToast('✅ Đã thêm ghi chú');
+            }
+
+            save();
+            render(searchInput.value);
+            closeModal();
+        }
+
+        function deleteNote() {
+            if (!editingId || !confirm('Xóa ghi chú này?')) return;
+            notes = notes.filter(n => n.id !== editingId);
+            save();
+            render(searchInput.value);
+            closeModal();
+            showToast('🗑️ Đã xóa');
+        }
+
+        function openMenu() { menuOverlay.classList.add('open'); menuPanel.classList.add('open'); }
+        function closeMenu() { menuOverlay.classList.remove('open'); menuPanel.classList.remove('open'); }
+
+        function exportData() {
+            const blob = new Blob([JSON.stringify(notes, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'ghi-chu-' + new Date().toISOString().slice(0,10) + '.json';
+            a.click();
+            closeMenu();
+            showToast('📤 Đã xuất ' + notes.length + ' ghi chú');
+        }
+
+        function clearAll() {
+            if (!confirm('Xóa tất cả ghi chú?')) return;
+            notes = [];
+            save();
+            render();
+            closeMenu();
+            showToast('🗑️ Đã xóa tất cả');
+        }
+
+        function save() { localStorage.setItem(STORAGE, JSON.stringify(notes)); }
+
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        function esc(s) { return s.replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c])); }
+
+        function timeAgo(ts) {
+            const diff = Date.now() - ts;
+            if (diff < 60000) return 'Vừa xong';
+            if (diff < 3600000) return Math.floor(diff/60000) + ' phút trước';
+            if (diff < 86400000) return Math.floor(diff/3600000) + ' giờ trước';
+            return new Date(ts).toLocaleDateString('vi-VN');
+        }
+    </script>
+</body>
+</html>
