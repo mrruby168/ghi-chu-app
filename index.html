@@ -2,112 +2,144 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#007bff">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Ghi Chú">
+    <meta name="description" content="Ứng dụng ghi chú đơn giản">
+    
     <title>Ghi Chú</title>
+    
+    <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23007bff' width='100' height='100' rx='20'/><text y='.9em' x='50%' text-anchor='middle' font-size='70'>📝</text></svg>">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
         
-        html, body { 
-            height: 100%; 
+        html, body {
+            height: 100%;
             overflow: hidden;
-            overscroll-behavior: none;
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: #f5f5f5;
+            color: #333;
         }
         
         .app {
-            height: 100%;
             display: flex;
             flex-direction: column;
+            height: 100%;
             max-width: 500px;
             margin: 0 auto;
             background: #f5f5f5;
         }
         
-        /* Header */
+        /* ===== HEADER ===== */
         header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 16px;
+            padding: 16px 20px;
             background: #fff;
-            border-bottom: 1px solid #e0e0e0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            padding-top: max(12px, env(safe-area-inset-top));
+            border-bottom: 1px solid #e8e8e8;
+            flex-shrink: 0;
         }
         
-        header h1 { 
-            font-size: 1.3rem; 
-            color: #333; 
+        header h1 {
+            font-size: 1.4rem;
             font-weight: 700;
+            color: #333;
         }
         
-        .header-actions { display: flex; gap: 4px; }
+        .header-btns {
+            display: flex;
+            gap: 8px;
+        }
         
         .icon-btn {
             width: 40px;
             height: 40px;
-            border: none;
-            background: transparent;
-            font-size: 1.3rem;
-            cursor: pointer;
-            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
+            background: none;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: background 0.2s;
         }
         
-        .icon-btn:active { background: #f0f0f0; }
+        .icon-btn:active {
+            background: #f0f0f0;
+        }
         
-        /* Search */
-        .search-box { padding: 12px 16px; background: #fff; }
+        /* ===== SEARCH ===== */
+        .search-bar {
+            padding: 12px 16px;
+            background: #fff;
+            flex-shrink: 0;
+        }
         
         .search-input {
             width: 100%;
             height: 44px;
             padding: 0 16px;
-            border: none;
+            background: #f5f5f5;
+            border: 2px solid transparent;
             border-radius: 12px;
-            background: #f0f0f0;
             font-size: 1rem;
             color: #333;
+            transition: border-color 0.2s, background 0.2s;
         }
         
-        .search-input::placeholder { color: #999; }
-        .search-input:focus { outline: 2px solid #007bff; }
+        .search-input:focus {
+            outline: none;
+            background: #fff;
+            border-color: #007bff;
+        }
         
-        /* Notes List */
-        .notes-container {
+        .search-input::placeholder {
+            color: #999;
+        }
+        
+        /* ===== NOTES LIST ===== */
+        .notes-wrapper {
             flex: 1;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
         }
         
-        .notes-list { padding: 12px 16px 100px; }
+        .notes-list {
+            padding: 8px 16px 120px 16px;
+        }
         
         .note-card {
             background: #fff;
             border-radius: 14px;
-            padding: 16px;
+            padding: 16px 18px;
             margin-bottom: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
             border-left: 4px solid #007bff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             cursor: pointer;
-            transition: transform 0.15s;
+            transition: transform 0.15s, box-shadow 0.15s;
         }
         
-        .note-card:active { transform: scale(0.98); }
+        .note-card:active {
+            transform: scale(0.98);
+        }
         
         .note-card[data-color="blue"] { border-left-color: #007bff; }
         .note-card[data-color="green"] { border-left-color: #28a745; }
@@ -116,85 +148,97 @@
         .note-card[data-color="purple"] { border-left-color: #6f42c1; }
         
         .note-title {
-            font-size: 1rem;
+            font-size: 1.05rem;
             font-weight: 600;
             color: #333;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
+            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: nowrap;
         }
         
         .note-content {
             font-size: 0.9rem;
             color: #666;
-            line-height: 1.4;
+            line-height: 1.5;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
         
-        .note-meta {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
+        .note-time {
             font-size: 0.75rem;
             color: #999;
+            margin-top: 10px;
         }
         
-        /* Empty State */
+        /* ===== EMPTY STATE ===== */
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
+            padding: 80px 30px;
+        }
+        
+        .empty-state .icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+        
+        .empty-state p {
+            font-size: 1rem;
             color: #999;
         }
         
-        .empty-state .icon { font-size: 4rem; margin-bottom: 16px; }
-        .empty-state p { font-size: 1rem; }
-        
-        /* FAB */
+        /* ===== FAB BUTTON ===== */
         .fab {
             position: fixed;
-            bottom: max(24px, env(safe-area-inset-bottom));
-            right: 24px;
+            bottom: 30px;
+            right: 30px;
             width: 60px;
             height: 60px;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: #fff;
             border: none;
             border-radius: 18px;
-            background: #007bff;
-            color: #fff;
-            font-size: 1.8rem;
+            font-size: 2rem;
+            font-weight: 300;
             cursor: pointer;
-            box-shadow: 0 4px 20px rgba(0,123,255,0.4);
+            box-shadow: 0 6px 20px rgba(0,123,255,0.4);
             z-index: 100;
-            display: flex;
-            align-items: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .fab:active {
+            transform: scale(0.9);
+        }
+        
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            align-items: flex-end;
             justify-content: center;
         }
         
-        .fab:active { transform: scale(0.9); }
-        
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 200;
-            background: rgba(0,0,0,0.5);
+        .modal-overlay.open {
+            display: flex;
         }
         
-        .modal.open { display: flex; align-items: flex-end; }
-        
-        .modal-content {
+        .modal-box {
             width: 100%;
-            max-height: 90vh;
+            max-width: 500px;
+            max-height: 85vh;
             background: #fff;
-            border-radius: 20px 20px 0 0;
+            border-radius: 24px 24px 0 0;
             display: flex;
             flex-direction: column;
-            animation: slideUp 0.25s ease;
-            padding-bottom: env(safe-area-inset-bottom);
+            animation: slideUp 0.3s ease;
         }
         
         @keyframes slideUp {
@@ -206,427 +250,750 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 16px 20px;
+            padding: 18px 20px;
             border-bottom: 1px solid #eee;
+            flex-shrink: 0;
         }
         
-        .modal-header h2 { font-size: 1.1rem; color: #333; }
+        .modal-header h2 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #333;
+        }
         
-        .modal-body { 
-            padding: 20px; 
-            flex: 1; 
+        .close-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f5f5f5;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+        
+        .close-btn:active {
+            background: #e8e8e8;
+        }
+        
+        .modal-body {
+            flex: 1;
             overflow-y: auto;
+            padding: 20px;
             -webkit-overflow-scrolling: touch;
         }
         
-        .form-group { margin-bottom: 16px; }
+        .form-group {
+            margin-bottom: 18px;
+        }
         
         .form-label {
             display: block;
             font-size: 0.85rem;
+            font-weight: 500;
             color: #666;
             margin-bottom: 8px;
-            font-weight: 500;
         }
         
         .form-input {
             width: 100%;
-            padding: 14px;
-            border: 2px solid #e0e0e0;
+            padding: 14px 16px;
+            background: #f8f8f8;
+            border: 2px solid #e8e8e8;
             border-radius: 12px;
             font-size: 1rem;
             color: #333;
-            background: #fff;
+            transition: border-color 0.2s, background 0.2s;
         }
         
-        .form-input:focus { outline: none; border-color: #007bff; }
+        .form-input:focus {
+            outline: none;
+            background: #fff;
+            border-color: #007bff;
+        }
         
-        textarea.form-input { 
-            min-height: 150px; 
-            resize: none; 
+        textarea.form-input {
+            min-height: 140px;
+            resize: none;
             line-height: 1.6;
             font-family: inherit;
         }
         
-        .color-picker { display: flex; gap: 12px; flex-wrap: wrap; }
+        /* ===== COLOR PICKER ===== */
+        .color-picker {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
         
-        .color-opt {
+        .color-option {
             width: 36px;
             height: 36px;
             border-radius: 50%;
             border: 3px solid transparent;
             cursor: pointer;
+            transition: transform 0.15s, border-color 0.15s;
         }
         
-        .color-opt.active { border-color: #333; transform: scale(1.1); }
-        .color-opt[data-color="blue"] { background: #007bff; }
-        .color-opt[data-color="green"] { background: #28a745; }
-        .color-opt[data-color="orange"] { background: #fd7e14; }
-        .color-opt[data-color="red"] { background: #dc3545; }
-        .color-opt[data-color="purple"] { background: #6f42c1; }
+        .color-option:active {
+            transform: scale(0.9);
+        }
         
+        .color-option.active {
+            border-color: #333;
+            transform: scale(1.1);
+        }
+        
+        .color-option[data-color="blue"] { background: #007bff; }
+        .color-option[data-color="green"] { background: #28a745; }
+        .color-option[data-color="orange"] { background: #fd7e14; }
+        .color-option[data-color="red"] { background: #dc3545; }
+        .color-option[data-color="purple"] { background: #6f42c1; }
+        
+        /* ===== MODAL FOOTER ===== */
         .modal-footer {
             display: flex;
             gap: 10px;
             padding: 16px 20px;
             border-top: 1px solid #eee;
+            flex-shrink: 0;
         }
         
         .btn {
             flex: 1;
-            padding: 14px;
+            height: 50px;
             border: none;
             border-radius: 12px;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
+            transition: opacity 0.2s;
         }
         
-        .btn:active { opacity: 0.8; }
-        .btn-cancel { background: #f0f0f0; color: #333; }
-        .btn-save { background: #007bff; color: #fff; }
-        .btn-delete { background: #dc3545; color: #fff; flex: 0.5; }
+        .btn:active {
+            opacity: 0.8;
+        }
         
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: #333;
+        .btn-cancel {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn-save {
+            background: linear-gradient(135deg, #007bff, #0056b3);
             color: #fff;
-            padding: 12px 24px;
-            border-radius: 25px;
-            font-size: 0.9rem;
-            z-index: 300;
-            opacity: 0;
-            transition: all 0.3s;
         }
         
-        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .btn-delete {
+            flex: 0 0 auto;
+            width: 50px;
+            background: #fee;
+            color: #dc3545;
+            font-size: 1.2rem;
+        }
         
-        /* Menu */
+        /* ===== MENU SIDEBAR ===== */
         .menu-overlay {
             display: none;
             position: fixed;
-            inset: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: rgba(0,0,0,0.5);
             z-index: 150;
         }
         
-        .menu-overlay.open { display: block; }
+        .menu-overlay.open {
+            display: block;
+        }
         
         .menu-panel {
             position: fixed;
             top: 0;
-            right: -280px;
+            right: -300px;
             width: 280px;
             height: 100%;
             background: #fff;
             z-index: 151;
-            transition: right 0.3s;
-            padding: 20px;
-            padding-top: max(20px, env(safe-area-inset-top));
+            padding: 24px 20px;
+            transition: right 0.3s ease;
+            overflow-y: auto;
         }
         
-        .menu-panel.open { right: 0; }
+        .menu-panel.open {
+            right: 0;
+        }
         
-        .menu-title { font-size: 1.2rem; margin-bottom: 20px; color: #333; }
+        .menu-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #eee;
+        }
         
         .menu-item {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 14px;
-            border-radius: 10px;
-            color: #333;
+            gap: 14px;
+            padding: 14px 16px;
+            border-radius: 12px;
             font-size: 1rem;
+            color: #333;
             cursor: pointer;
+            margin-bottom: 4px;
+            transition: background 0.2s;
         }
         
-        .menu-item:active { background: #f5f5f5; }
-        .menu-item.danger { color: #dc3545; }
+        .menu-item:active {
+            background: #f5f5f5;
+        }
         
-        .menu-divider { height: 1px; background: #eee; margin: 10px 0; }
+        .menu-item.danger {
+            color: #dc3545;
+        }
         
-        .stats { padding: 14px; background: #f5f5f5; border-radius: 10px; margin-top: 20px; }
-        .stats-title { font-size: 0.85rem; color: #666; margin-bottom: 8px; }
-        .stats-value { font-size: 1.5rem; font-weight: 700; color: #007bff; }
+        .menu-divider {
+            height: 1px;
+            background: #eee;
+            margin: 12px 0;
+        }
+        
+        .menu-stats {
+            margin-top: 24px;
+            padding: 16px;
+            background: #f8f8f8;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .menu-stats .label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 6px;
+        }
+        
+        .menu-stats .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #007bff;
+        }
+        
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #333;
+            color: #fff;
+            padding: 14px 28px;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            z-index: 300;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        /* ===== RESPONSIVE ===== */
+        @media (min-width: 501px) {
+            .fab {
+                right: calc(50% - 220px);
+            }
+        }
     </style>
 </head>
 <body>
     <div class="app">
+        <!-- Header -->
         <header>
             <h1>📝 Ghi Chú</h1>
-            <div class="header-actions">
-                <button class="icon-btn" id="searchBtn">🔍</button>
-                <button class="icon-btn" id="menuBtn">☰</button>
+            <div class="header-btns">
+                <button class="icon-btn" id="menuBtn" title="Menu">☰</button>
             </div>
         </header>
 
-        <div class="search-box" id="searchBox">
+        <!-- Search -->
+        <div class="search-bar">
             <input type="text" class="search-input" id="searchInput" placeholder="Tìm kiếm ghi chú...">
         </div>
 
-        <div class="notes-container">
+        <!-- Notes List -->
+        <div class="notes-wrapper">
             <div class="notes-list" id="notesList"></div>
         </div>
 
-        <button class="fab" id="addBtn">+</button>
+        <!-- FAB Button -->
+        <button class="fab" id="addBtn" title="Thêm ghi chú">+</button>
     </div>
 
     <!-- Note Modal -->
-    <div class="modal" id="noteModal">
-        <div class="modal-content">
+    <div class="modal-overlay" id="noteModal">
+        <div class="modal-box">
             <div class="modal-header">
                 <h2 id="modalTitle">Ghi chú mới</h2>
-                <button class="icon-btn" id="closeModal">✕</button>
+                <button class="close-btn" id="closeModalBtn">✕</button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
                     <label class="form-label">Tiêu đề</label>
-                    <input type="text" class="form-input" id="noteTitle" placeholder="Nhập tiêu đề...">
+                    <input type="text" class="form-input" id="titleInput" placeholder="Nhập tiêu đề...">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Nội dung</label>
-                    <textarea class="form-input" id="noteContent" placeholder="Nhập nội dung..."></textarea>
+                    <textarea class="form-input" id="contentInput" placeholder="Nhập nội dung ghi chú..."></textarea>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Màu sắc</label>
                     <div class="color-picker" id="colorPicker">
-                        <div class="color-opt active" data-color="blue"></div>
-                        <div class="color-opt" data-color="green"></div>
-                        <div class="color-opt" data-color="orange"></div>
-                        <div class="color-opt" data-color="red"></div>
-                        <div class="color-opt" data-color="purple"></div>
+                        <div class="color-option active" data-color="blue"></div>
+                        <div class="color-option" data-color="green"></div>
+                        <div class="color-option" data-color="orange"></div>
+                        <div class="color-option" data-color="red"></div>
+                        <div class="color-option" data-color="purple"></div>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-delete" id="deleteBtn" style="display:none">Xóa</button>
+                <button class="btn btn-delete" id="deleteBtn" style="display:none;">🗑️</button>
                 <button class="btn btn-cancel" id="cancelBtn">Hủy</button>
                 <button class="btn btn-save" id="saveBtn">Lưu</button>
             </div>
         </div>
     </div>
 
-    <!-- Menu -->
+    <!-- Menu Sidebar -->
     <div class="menu-overlay" id="menuOverlay"></div>
     <div class="menu-panel" id="menuPanel">
-        <div class="menu-title">⚙️ Menu</div>
+        <div class="menu-title">📋 Menu</div>
         <div class="menu-item" id="exportBtn">📤 Xuất dữ liệu</div>
         <div class="menu-item" id="importBtn">📥 Nhập dữ liệu</div>
         <div class="menu-divider"></div>
         <div class="menu-item danger" id="clearBtn">🗑️ Xóa tất cả</div>
-        <div class="stats">
-            <div class="stats-title">Tổng số ghi chú</div>
-            <div class="stats-value" id="statsCount">0</div>
+        <div class="menu-stats">
+            <div class="label">Tổng số ghi chú</div>
+            <div class="value" id="noteCount">0</div>
         </div>
     </div>
 
+    <!-- Toast -->
     <div class="toast" id="toast"></div>
-    <input type="file" id="importFile" accept=".json" style="display:none">
+
+    <!-- Hidden file input -->
+    <input type="file" id="fileInput" accept=".json" style="display:none;">
 
     <script>
-        // Storage
-        const STORAGE = 'pwa_notes_v1';
-        let notes = JSON.parse(localStorage.getItem(STORAGE) || '[]');
-        let editingId = null;
-        let selectedColor = 'blue';
+        (function() {
+            // ========== STORAGE ==========
+            var STORAGE_KEY = 'my_notes_app_v1';
+            var notes = [];
+            var editingId = null;
+            var selectedColor = 'blue';
 
-        // Elements
-        const $ = id => document.getElementById(id);
-        const notesList = $('notesList');
-        const noteModal = $('noteModal');
-        const menuOverlay = $('menuOverlay');
-        const menuPanel = $('menuPanel');
-        const searchInput = $('searchInput');
-        const toast = $('toast');
+            // ========== ELEMENTS ==========
+            var notesList = document.getElementById('notesList');
+            var noteModal = document.getElementById('noteModal');
+            var menuOverlay = document.getElementById('menuOverlay');
+            var menuPanel = document.getElementById('menuPanel');
+            var searchInput = document.getElementById('searchInput');
+            var titleInput = document.getElementById('titleInput');
+            var contentInput = document.getElementById('contentInput');
+            var modalTitle = document.getElementById('modalTitle');
+            var deleteBtn = document.getElementById('deleteBtn');
+            var colorPicker = document.getElementById('colorPicker');
+            var noteCount = document.getElementById('noteCount');
+            var toast = document.getElementById('toast');
+            var fileInput = document.getElementById('fileInput');
 
-        // Init
-        if (notes.length === 0) {
-            notes = [
-                { id: 1, title: 'Chào mừng! 👋', content: 'Đây là app Ghi Chú PWA. Bạn có thể:\n• Thêm ghi chú mới\n• Tìm kiếm nhanh\n• Chọn màu sắc\n• Xuất/nhập dữ liệu', color: 'blue', date: Date.now() },
-                { id: 2, title: 'Cài app lên điện thoại', content: 'Android: Nhấn ⋮ → Thêm vào màn hình chính\niPhone: Nhấn 📤 → Thêm vào MH chính', color: 'green', date: Date.now() - 60000 }
-            ];
-            save();
-        }
-        render();
-
-        // Service Worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(() => {});
-        }
-
-        // Events
-        $('addBtn').onclick = () => openModal();
-        $('closeModal').onclick = closeModal;
-        $('cancelBtn').onclick = closeModal;
-        $('saveBtn').onclick = saveNote;
-        $('deleteBtn').onclick = deleteNote;
-        $('menuBtn').onclick = openMenu;
-        $('menuOverlay').onclick = closeMenu;
-        $('searchBtn').onclick = () => searchInput.focus();
-        $('exportBtn').onclick = exportData;
-        $('importBtn').onclick = () => $('importFile').click();
-        $('clearBtn').onclick = clearAll;
-        searchInput.oninput = e => render(e.target.value);
-        
-        noteModal.onclick = e => { if (e.target === noteModal) closeModal(); };
-
-        notesList.onclick = e => {
-            const card = e.target.closest('.note-card');
-            if (card) openModal(parseInt(card.dataset.id));
-        };
-
-        $('colorPicker').onclick = e => {
-            const opt = e.target.closest('.color-opt');
-            if (opt) {
-                document.querySelectorAll('.color-opt').forEach(o => o.classList.remove('active'));
-                opt.classList.add('active');
-                selectedColor = opt.dataset.color;
+            // ========== INIT ==========
+            function init() {
+                loadNotes();
+                renderNotes();
+                bindEvents();
+                registerServiceWorker();
             }
-        };
 
-        $('importFile').onchange = e => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = e => {
+            function loadNotes() {
                 try {
-                    const data = JSON.parse(e.target.result);
-                    if (Array.isArray(data)) {
-                        notes = [...notes, ...data.map(n => ({...n, id: Date.now() + Math.random()}))];
-                        save();
-                        render();
-                        showToast('✅ Đã nhập ' + data.length + ' ghi chú');
-                    }
-                } catch { showToast('❌ File không hợp lệ'); }
-            };
-            reader.readAsText(file);
-            e.target.value = '';
-            closeMenu();
-        };
-
-        // Functions
-        function render(filter = '') {
-            const filtered = notes.filter(n => 
-                n.title.toLowerCase().includes(filter.toLowerCase()) ||
-                n.content.toLowerCase().includes(filter.toLowerCase())
-            ).sort((a, b) => b.date - a.date);
-
-            $('statsCount').textContent = notes.length;
-
-            if (filtered.length === 0) {
-                notesList.innerHTML = `<div class="empty-state"><div class="icon">📝</div><p>${filter ? 'Không tìm thấy' : 'Chưa có ghi chú'}</p></div>`;
-                return;
-            }
-
-            notesList.innerHTML = filtered.map(n => `
-                <div class="note-card" data-id="${n.id}" data-color="${n.color}">
-                    <div class="note-title">${esc(n.title)}</div>
-                    <div class="note-content">${esc(n.content)}</div>
-                    <div class="note-meta"><span>${timeAgo(n.date)}</span></div>
-                </div>
-            `).join('');
-        }
-
-        function openModal(id = null) {
-            editingId = id;
-            const note = id ? notes.find(n => n.id === id) : null;
-
-            $('modalTitle').textContent = note ? 'Chỉnh sửa' : 'Ghi chú mới';
-            $('noteTitle').value = note?.title || '';
-            $('noteContent').value = note?.content || '';
-            selectedColor = note?.color || 'blue';
-            $('deleteBtn').style.display = note ? 'block' : 'none';
-
-            document.querySelectorAll('.color-opt').forEach(o => {
-                o.classList.toggle('active', o.dataset.color === selectedColor);
-            });
-
-            noteModal.classList.add('open');
-            setTimeout(() => $('noteTitle').focus(), 100);
-        }
-
-        function closeModal() {
-            noteModal.classList.remove('open');
-            editingId = null;
-        }
-
-        function saveNote() {
-            const title = $('noteTitle').value.trim() || 'Không tiêu đề';
-            const content = $('noteContent').value.trim();
-
-            if (!content && !title) return;
-
-            if (editingId) {
-                const note = notes.find(n => n.id === editingId);
-                if (note) {
-                    note.title = title;
-                    note.content = content;
-                    note.color = selectedColor;
-                    note.date = Date.now();
+                    var saved = localStorage.getItem(STORAGE_KEY);
+                    notes = saved ? JSON.parse(saved) : [];
+                } catch (e) {
+                    notes = [];
                 }
-                showToast('✅ Đã cập nhật');
-            } else {
-                notes.unshift({ id: Date.now(), title, content, color: selectedColor, date: Date.now() });
-                showToast('✅ Đã thêm ghi chú');
+
+                // Default notes
+                if (notes.length === 0) {
+                    notes = [
+                        {
+                            id: 1,
+                            title: 'Chào mừng bạn! 👋',
+                            content: 'Đây là ứng dụng Ghi Chú PWA.\n\n✓ Thêm ghi chú mới bằng nút +\n✓ Nhấn vào ghi chú để sửa\n✓ Tìm kiếm nhanh\n✓ Chọn màu sắc\n✓ Xuất/nhập dữ liệu',
+                            color: 'blue',
+                            date: Date.now()
+                        },
+                        {
+                            id: 2,
+                            title: 'Cài đặt app lên điện thoại',
+                            content: '📱 Android (Chrome):\nNhấn ⋮ Menu → Thêm vào màn hình chính\n\n🍎 iPhone (Safari):\nNhấn nút Share → Thêm vào MH chính',
+                            color: 'green',
+                            date: Date.now() - 60000
+                        }
+                    ];
+                    saveNotes();
+                }
             }
 
-            save();
-            render(searchInput.value);
-            closeModal();
-        }
+            function saveNotes() {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+                } catch (e) {
+                    showToast('Lỗi lưu dữ liệu!');
+                }
+            }
 
-        function deleteNote() {
-            if (!editingId || !confirm('Xóa ghi chú này?')) return;
-            notes = notes.filter(n => n.id !== editingId);
-            save();
-            render(searchInput.value);
-            closeModal();
-            showToast('🗑️ Đã xóa');
-        }
+            function registerServiceWorker() {
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.register('sw.js').catch(function() {});
+                }
+            }
 
-        function openMenu() { menuOverlay.classList.add('open'); menuPanel.classList.add('open'); }
-        function closeMenu() { menuOverlay.classList.remove('open'); menuPanel.classList.remove('open'); }
+            // ========== RENDER ==========
+            function renderNotes() {
+                var query = searchInput.value.toLowerCase().trim();
+                
+                var filtered = notes.filter(function(note) {
+                    var titleMatch = note.title.toLowerCase().indexOf(query) !== -1;
+                    var contentMatch = note.content.toLowerCase().indexOf(query) !== -1;
+                    return titleMatch || contentMatch;
+                });
 
-        function exportData() {
-            const blob = new Blob([JSON.stringify(notes, null, 2)], { type: 'application/json' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'ghi-chu-' + new Date().toISOString().slice(0,10) + '.json';
-            a.click();
-            closeMenu();
-            showToast('📤 Đã xuất ' + notes.length + ' ghi chú');
-        }
+                filtered.sort(function(a, b) {
+                    return b.date - a.date;
+                });
 
-        function clearAll() {
-            if (!confirm('Xóa tất cả ghi chú?')) return;
-            notes = [];
-            save();
-            render();
-            closeMenu();
-            showToast('🗑️ Đã xóa tất cả');
-        }
+                noteCount.textContent = notes.length;
 
-        function save() { localStorage.setItem(STORAGE, JSON.stringify(notes)); }
+                if (filtered.length === 0) {
+                    notesList.innerHTML = '<div class="empty-state">' +
+                        '<div class="icon">📝</div>' +
+                        '<p>' + (query ? 'Không tìm thấy ghi chú' : 'Chưa có ghi chú nào') + '</p>' +
+                        '</div>';
+                    return;
+                }
 
-        function showToast(msg) {
-            toast.textContent = msg;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2500);
-        }
+                var html = '';
+                for (var i = 0; i < filtered.length; i++) {
+                    var note = filtered[i];
+                    html += '<div class="note-card" data-id="' + note.id + '" data-color="' + note.color + '">' +
+                        '<div class="note-title">' + escapeHtml(note.title) + '</div>' +
+                        '<div class="note-content">' + escapeHtml(note.content) + '</div>' +
+                        '<div class="note-time">' + formatTime(note.date) + '</div>' +
+                        '</div>';
+                }
+                notesList.innerHTML = html;
+            }
 
-        function esc(s) { return s.replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c])); }
+            // ========== EVENTS ==========
+            function bindEvents() {
+                // Add button
+                document.getElementById('addBtn').onclick = function() {
+                    openModal(null);
+                };
 
-        function timeAgo(ts) {
-            const diff = Date.now() - ts;
-            if (diff < 60000) return 'Vừa xong';
-            if (diff < 3600000) return Math.floor(diff/60000) + ' phút trước';
-            if (diff < 86400000) return Math.floor(diff/3600000) + ' giờ trước';
-            return new Date(ts).toLocaleDateString('vi-VN');
-        }
+                // Close modal
+                document.getElementById('closeModalBtn').onclick = closeModal;
+                document.getElementById('cancelBtn').onclick = closeModal;
+
+                // Save note
+                document.getElementById('saveBtn').onclick = saveNote;
+
+                // Delete note
+                deleteBtn.onclick = deleteNote;
+
+                // Menu
+                document.getElementById('menuBtn').onclick = openMenu;
+                menuOverlay.onclick = closeMenu;
+
+                // Export/Import
+                document.getElementById('exportBtn').onclick = exportNotes;
+                document.getElementById('importBtn').onclick = function() {
+                    fileInput.click();
+                };
+                document.getElementById('clearBtn').onclick = clearAllNotes;
+
+                // File input
+                fileInput.onchange = importNotes;
+
+                // Search
+                searchInput.oninput = function() {
+                    renderNotes();
+                };
+
+                // Click on note card
+                notesList.onclick = function(e) {
+                    var card = e.target.closest('.note-card');
+                    if (card) {
+                        var id = parseInt(card.getAttribute('data-id'));
+                        openModal(id);
+                    }
+                };
+
+                // Color picker
+                colorPicker.onclick = function(e) {
+                    var option = e.target.closest('.color-option');
+                    if (option) {
+                        var options = colorPicker.querySelectorAll('.color-option');
+                        for (var i = 0; i < options.length; i++) {
+                            options[i].classList.remove('active');
+                        }
+                        option.classList.add('active');
+                        selectedColor = option.getAttribute('data-color');
+                    }
+                };
+
+                // Click outside modal
+                noteModal.onclick = function(e) {
+                    if (e.target === noteModal) {
+                        closeModal();
+                    }
+                };
+            }
+
+            // ========== MODAL ==========
+            function openModal(id) {
+                editingId = id;
+                var note = null;
+
+                if (id !== null) {
+                    for (var i = 0; i < notes.length; i++) {
+                        if (notes[i].id === id) {
+                            note = notes[i];
+                            break;
+                        }
+                    }
+                }
+
+                modalTitle.textContent = note ? 'Chỉnh sửa ghi chú' : 'Ghi chú mới';
+                titleInput.value = note ? note.title : '';
+                contentInput.value = note ? note.content : '';
+                selectedColor = note ? note.color : 'blue';
+                deleteBtn.style.display = note ? 'block' : 'none';
+
+                // Update color picker
+                var options = colorPicker.querySelectorAll('.color-option');
+                for (var i = 0; i < options.length; i++) {
+                    var isActive = options[i].getAttribute('data-color') === selectedColor;
+                    options[i].classList.toggle('active', isActive);
+                }
+
+                noteModal.classList.add('open');
+                
+                setTimeout(function() {
+                    titleInput.focus();
+                }, 100);
+            }
+
+            function closeModal() {
+                noteModal.classList.remove('open');
+                editingId = null;
+            }
+
+            // ========== CRUD ==========
+            function saveNote() {
+                var title = titleInput.value.trim();
+                var content = contentInput.value.trim();
+
+                if (!title && !content) {
+                    showToast('Vui lòng nhập nội dung!');
+                    return;
+                }
+
+                if (!title) {
+                    title = 'Không có tiêu đề';
+                }
+
+                if (editingId !== null) {
+                    // Update existing note
+                    for (var i = 0; i < notes.length; i++) {
+                        if (notes[i].id === editingId) {
+                            notes[i].title = title;
+                            notes[i].content = content;
+                            notes[i].color = selectedColor;
+                            notes[i].date = Date.now();
+                            break;
+                        }
+                    }
+                    showToast('✓ Đã cập nhật!');
+                } else {
+                    // Create new note
+                    var newNote = {
+                        id: Date.now(),
+                        title: title,
+                        content: content,
+                        color: selectedColor,
+                        date: Date.now()
+                    };
+                    notes.unshift(newNote);
+                    showToast('✓ Đã thêm ghi chú!');
+                }
+
+                saveNotes();
+                renderNotes();
+                closeModal();
+            }
+
+            function deleteNote() {
+                if (editingId === null) return;
+
+                if (!confirm('Bạn có chắc muốn xóa ghi chú này?')) {
+                    return;
+                }
+
+                notes = notes.filter(function(note) {
+                    return note.id !== editingId;
+                });
+
+                saveNotes();
+                renderNotes();
+                closeModal();
+                showToast('🗑️ Đã xóa!');
+            }
+
+            // ========== MENU ==========
+            function openMenu() {
+                menuOverlay.classList.add('open');
+                menuPanel.classList.add('open');
+            }
+
+            function closeMenu() {
+                menuOverlay.classList.remove('open');
+                menuPanel.classList.remove('open');
+            }
+
+            function exportNotes() {
+                var dataStr = JSON.stringify(notes, null, 2);
+                var blob = new Blob([dataStr], { type: 'application/json' });
+                var url = URL.createObjectURL(blob);
+                
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = 'ghi-chu-' + formatDate(Date.now()) + '.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                closeMenu();
+                showToast('📤 Đã xuất ' + notes.length + ' ghi chú!');
+            }
+
+            function importNotes(e) {
+                var file = e.target.files[0];
+                if (!file) return;
+
+                var reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        var imported = JSON.parse(event.target.result);
+                        if (Array.isArray(imported)) {
+                            for (var i = 0; i < imported.length; i++) {
+                                imported[i].id = Date.now() + i;
+                            }
+                            notes = notes.concat(imported);
+                            saveNotes();
+                            renderNotes();
+                            showToast('📥 Đã nhập ' + imported.length + ' ghi chú!');
+                        } else {
+                            showToast('File không hợp lệ!');
+                        }
+                    } catch (err) {
+                        showToast('Lỗi đọc file!');
+                    }
+                };
+                reader.readAsText(file);
+                
+                fileInput.value = '';
+                closeMenu();
+            }
+
+            function clearAllNotes() {
+                if (notes.length === 0) {
+                    showToast('Không có ghi chú nào!');
+                    closeMenu();
+                    return;
+                }
+
+                if (!confirm('Xóa tất cả ' + notes.length + ' ghi chú?')) {
+                    return;
+                }
+
+                notes = [];
+                saveNotes();
+                renderNotes();
+                closeMenu();
+                showToast('🗑️ Đã xóa tất cả!');
+            }
+
+            // ========== UTILITIES ==========
+            function escapeHtml(str) {
+                if (!str) return '';
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            function formatTime(timestamp) {
+                var now = Date.now();
+                var diff = now - timestamp;
+
+                if (diff < 60000) {
+                    return 'Vừa xong';
+                } else if (diff < 3600000) {
+                    return Math.floor(diff / 60000) + ' phút trước';
+                } else if (diff < 86400000) {
+                    return Math.floor(diff / 3600000) + ' giờ trước';
+                } else if (diff < 604800000) {
+                    return Math.floor(diff / 86400000) + ' ngày trước';
+                } else {
+                    var d = new Date(timestamp);
+                    return d.toLocaleDateString('vi-VN');
+                }
+            }
+
+            function formatDate(timestamp) {
+                var d = new Date(timestamp);
+                var year = d.getFullYear();
+                var month = ('0' + (d.getMonth() + 1)).slice(-2);
+                var day = ('0' + d.getDate()).slice(-2);
+                return year + '-' + month + '-' + day;
+            }
+
+            function showToast(message) {
+                toast.textContent = message;
+                toast.classList.add('show');
+                
+                setTimeout(function() {
+                    toast.classList.remove('show');
+                }, 2500);
+            }
+
+            // ========== START ==========
+            init();
+        })();
     </script>
 </body>
 </html>
